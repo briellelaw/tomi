@@ -20,8 +20,8 @@ export default {
           dark: "rgba(255,255,255,0.87)",
         },
         primary: {
-          DEFAULT: "#5b8770a1",
-          dark: "#747bff",
+          DEFAULT: "#74a273ff",
+          dark: "#74a273ff",
         },
         accent: {
           DEFAULT: "#f3f4f6",

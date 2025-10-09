@@ -16,29 +16,51 @@ export default function App() {
     try {
       const list = await invoke<Transaction[]>("get_transactions");
       setTransactions(list);
-    } catch (err) {
-      console.error("Failed to fetch transactions:", err);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
     }
   };
 
   useEffect(() => {
-    if (activeTab === "transactions") {
-      fetchTransactions();
-    }
-  }, [activeTab]);
+    fetchTransactions();
+  }, []);
 
   const addTransaction = async () => {
-    if (!desc || !amount || !date) return alert("Fill all fields");
-    await invoke("add_transaction", {
-      description: desc,
-      amount: parseFloat(amount),
-      date,
-    });
-    setDesc("");
-    setAmount("");
-    setDate("");
-    fetchTransactions();
+    if (!desc || !amount || !date) {
+      alert("Please fill out all fields.");
+      return;
+    }
+
+    try {
+      await invoke("add_transaction", {
+        description: desc,
+        amount: parseFloat(amount),
+        date,
+      });
+
+      // Clear inputs
+      setDesc("");
+      setAmount("");
+      setDate("");
+
+      // Refresh the list immediately
+      await fetchTransactions();
+    } catch (error) {
+      alert("didn't work");
+      console.error("Error adding transaction:", error);
+    }
   };
+
+  const deleteTransaction = async (id: number) => {
+  if (!confirm("Delete this transaction?")) return;
+  try {
+    await invoke("delete_transaction", { id });
+    await fetchTransactions(); // refresh the list
+  } catch (error) {
+    console.error("Error deleting transaction:", error);
+    alert("Couldn't delete transaction");
+  }
+};
 
   return (
     <div className="min-h-screen bg-background text-foreground py-16 flex justify-center">
@@ -68,7 +90,7 @@ export default function App() {
           <div>
             <h2 className="text-xl font-semibold mb-3">Overview</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Welcome to TOMI — your personal finance tracker.
+              Welcome to TOMI.
             </p>
             <p className="text-gray-600 dark:text-gray-400">
               Use the <span className="text-primary font-medium">Transactions</span> tab to record your spending,
@@ -79,40 +101,62 @@ export default function App() {
 
         {activeTab === "transactions" && (
           <div>
-        <div className="mb-6 space-y-3">
-          <input
-            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:outline-none"
-            placeholder="Description"
-          />
-          <input
-            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:outline-none"
-            placeholder="Amount"
-            type="number"
-          />
-          <input
-            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:outline-none"
-            type="date"
-          />
-          <button
-            className="w-full bg-primary text-white py-2 rounded font-medium hover:bg-primary/80 transition"
-          >
-            Add Transaction
-          </button>
-        </div>
+            <div className="mb-6 space-y-3">
+              <input
+                className="w-full p-2 border border-gray-300 rounded"
+                placeholder="Description"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+              />
+              <input
+                className="w-full p-2 border border-gray-300 rounded"
+                placeholder="Amount"
+                type="number"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <input
+                className="w-full p-2 border border-gray-300 rounded"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+              <button
+                className="w-full bg-[#7b9684] text-white py-2 rounded font-medium hover:bg-[#67856f] transition"
+                onClick={addTransaction}
+              >
+                Add Transaction
+              </button>
+            </div>
 
-        <h2 className="text-xl font-semibold mb-3">Transactions</h2>
-        <ul>
-          <li className="bg-accent dark:bg-gray-800 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center">
-            <div>
-              <div className="font-medium">Example item</div>
-              <div className="text-sm text-gray-500">10/09/2025</div>
-            </div>
-            <div className="font-semibold text-green-600 dark:text-green-400">
-              $100.00
-            </div>
-          </li>
-        </ul>
-        </div>)}
+            <h2 className="text-xl font-semibold mb-3">Transactions</h2>
+            {transactions.length === 0 ? (
+              <p className="text-gray-500 italic">No transactions yet.</p>
+            ) : (
+              <ul>
+                {transactions.map(([id, description, amount, date]) => (
+                  <li
+                    key={id}
+                    className="bg-gray-50 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="font-medium">{description}</div>
+                      <div className="text-sm text-gray-500">{date}</div>
+                    </div>
+                    <div
+                      className={`font-semibold ${
+                        amount < 0 ? "text-red-600" : "text-green-600"
+                      }`}
+                    >
+                      ${amount.toFixed(2)}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
       </div>
     </div>

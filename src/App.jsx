@@ -1,85 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-
 export default function App() {
-  const [transactions, setTransactions] = useState([]);
-  const [desc, setDesc] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-
-  const fetchTransactions = async () => {
-    const list = await invoke('get_transactions');
-    setTransactions(list);
-  };
-
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
-
-  const addTransaction = async () => {
-    if (!desc || !amount || !date) return alert('Fill all fields');
-    await invoke('add_transaction', {
-      description: desc,
-      amount: parseFloat(amount),
-      date,
-    });
-    setDesc('');
-    setAmount('');
-    setDate('');
-    fetchTransactions();
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-indigo-600">Finance Tracker</h1>
-      
-      <div className="mb-4 space-y-2">
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Description"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-        />
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Amount"
-          type="number"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <input
-          className="w-full p-2 border rounded"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-        <button
-          className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700"
-          onClick={addTransaction}
-        >
-          Add Transaction
-        </button>
-      </div>
+    <div className="min-h-screen bg-background text-foreground py-16 flex justify-center">
+      <div className="w-full max-w-md bg-white dark:bg-background-dark p-8 rounded-2xl shadow-lg">
+        <h1 className="text-4xl font-extrabold mb-6 text-primary text-center">
+          TOMI
+        </h1>
 
-      <h2 className="text-xl font-semibold mb-2">Transactions</h2>
-      <ul>
-        {transactions.map(([id, description, amount, date]) => (
-          <li
-            key={id}
-            className="bg-white p-3 rounded shadow mb-2 flex justify-between"
+        <div className="mb-6 space-y-3">
+          <input
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:outline-none"
+            placeholder="Description"
+          />
+          <input
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:outline-none"
+            placeholder="Amount"
+            type="number"
+          />
+          <input
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:outline-none"
+            type="date"
+          />
+          <button
+            className="w-full bg-primary text-white py-2 rounded font-medium hover:bg-primary/80 transition"
           >
+            Add Transaction
+          </button>
+        </div>
+
+        <h2 className="text-xl font-semibold mb-3">Transactions</h2>
+        <ul>
+          <li className="bg-accent dark:bg-gray-800 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center">
             <div>
-              <div className="font-medium">{description}</div>
-              <div className="text-sm text-gray-500">{date}</div>
+              <div className="font-medium">Example item</div>
+              <div className="text-sm text-gray-500">10/09/2025</div>
             </div>
-            <div className={`font-semibold ${amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-              ${amount.toFixed(2)}
+            <div className="font-semibold text-green-600 dark:text-green-400">
+              $100.00
             </div>
           </li>
-        ))}
-      </ul>
+        </ul>
+      </div>
     </div>
   );
 }
-

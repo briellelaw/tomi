@@ -5,9 +5,11 @@ A personal finance tool.
 ### Setup
 1. Install node.js
 
+**Debian:**
+```
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-
 sudo apt-get install -y nodejs
+```
 
 2. Install rust toolchain `rustup`
 

@@ -3,6 +3,8 @@
     windows_subsystem = "windows"
 )]
 
+mod stocks;
+
 use rusqlite::{params, Connection, Result};
 use serde::Serialize;
 use std::fs;
@@ -94,7 +96,14 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             add_transaction,
             get_transactions,
-            delete_transaction
+            delete_transaction,
+            stocks::add_stock,
+            stocks::get_stocks,
+            stocks::delete_stock,
+            stocks::fetch_stock_data,
+            stocks::add_portfolio_entry,
+            stocks::get_portfolio,
+            stocks::delete_portfolio_entry
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

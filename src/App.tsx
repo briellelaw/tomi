@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import StocksPage from "./pages/Stocks";
 
 type Transaction = {
   id: number;
@@ -9,7 +10,7 @@ type Transaction = {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"overview" | "transactions" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "transactions" | "stocks" | "settings">("overview");
 
   // --- Transaction State ---
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -69,7 +70,7 @@ export default function App() {
 
         {/* --- Tabs Header --- */}
         <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
-          {["overview", "transactions", "settings"].map((tab) => (
+          {["overview", "transactions", "stocks", "settings"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
@@ -134,37 +135,40 @@ export default function App() {
             ) : (
               <ul>
                 {transactions.map((tx, index) => (
-  <li
-    key={tx.id ?? index}
-    className="bg-gray-50 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center"
-  >
-    <div>
-      <div className="font-medium">{tx.description}</div>
-      <div className="text-sm text-gray-500">{tx.date}</div>
-    </div>
-    <div className="flex items-center gap-3">
-      <span
-        className={`font-semibold ${
-          Number(tx.amount) < 0 ? "text-red-600" : "text-green-600"
-        }`}
-      >
-        ${Number(tx.amount || 0).toFixed(2)}
-      </span>
-      <button
-        onClick={() => setConfirmDeleteId(tx.id)}
-  className="text-red-600 hover:text-red-800 font-medium transition"
-      >
-        ✕
-      </button>
-    </div>
-  </li>
-))}
+            <li
+              key={tx.id ?? index}
+              className="bg-gray-50 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center"
+            >
+              <div>
+                <div className="font-medium">{tx.description}</div>
+                <div className="text-sm text-gray-500">{tx.date}</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span
+                  className={`font-semibold ${
+                    Number(tx.amount) < 0 ? "text-red-600" : "text-green-600"
+                  }`}
+                >
+                  ${Number(tx.amount || 0).toFixed(2)}
+                </span>
+                <button
+                  onClick={() => setConfirmDeleteId(tx.id)}
+            className="text-red-600 hover:text-red-800 font-medium transition"
+                >
+                  ✕
+                </button>
+              </div>
+            </li>
+          ))}
 
 
               </ul>
             )}
           </div>
         )}
+
+
+         {activeTab === "stocks" && <StocksPage />} {/* ✅ new tab */}
 
       </div>
 

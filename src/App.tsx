@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
-type Transaction = [number, string, number, string];
+type Transaction = {
+  id: number;
+  description: string;
+  amount: number;
+  date: string;
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"overview" | "transactions" | "settings">("overview");
@@ -11,6 +16,7 @@ export default function App() {
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const fetchTransactions = async () => {
     try {
@@ -26,12 +32,14 @@ export default function App() {
   }, []);
 
   const addTransaction = async () => {
+    alert("Please fill out all fields.");
     if (!desc || !amount || !date) {
       alert("Please fill out all fields.");
       return;
     }
 
     try {
+      console.log({ desc, amount: parseFloat(amount), date });
       await invoke("add_transaction", {
         description: desc,
         amount: parseFloat(amount),
@@ -46,21 +54,11 @@ export default function App() {
       // Refresh the list immediately
       await fetchTransactions();
     } catch (error) {
-      alert("didn't work");
+      alert("Failed to Add Transaction");
       console.error("Error adding transaction:", error);
     }
   };
 
-  const deleteTransaction = async (id: number) => {
-  if (!confirm("Delete this transaction?")) return;
-  try {
-    await invoke("delete_transaction", { id });
-    await fetchTransactions(); // refresh the list
-  } catch (error) {
-    console.error("Error deleting transaction:", error);
-    alert("Couldn't delete transaction");
-  }
-};
 
   return (
     <div className="min-h-screen bg-background text-foreground py-16 flex justify-center">
@@ -135,30 +133,75 @@ export default function App() {
               <p className="text-gray-500 italic">No transactions yet.</p>
             ) : (
               <ul>
-                {transactions.map(([id, description, amount, date]) => (
-                  <li
-                    key={id}
-                    className="bg-gray-50 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center"
-                  >
-                    <div>
-                      <div className="font-medium">{description}</div>
-                      <div className="text-sm text-gray-500">{date}</div>
-                    </div>
-                    <div
-                      className={`font-semibold ${
-                        amount < 0 ? "text-red-600" : "text-green-600"
-                      }`}
-                    >
-                      ${amount.toFixed(2)}
-                    </div>
-                  </li>
-                ))}
+                {transactions.map((tx, index) => (
+  <li
+    key={tx.id ?? index}
+    className="bg-gray-50 p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center"
+  >
+    <div>
+      <div className="font-medium">{tx.description}</div>
+      <div className="text-sm text-gray-500">{tx.date}</div>
+    </div>
+    <div className="flex items-center gap-3">
+      <span
+        className={`font-semibold ${
+          Number(tx.amount) < 0 ? "text-red-600" : "text-green-600"
+        }`}
+      >
+        ${Number(tx.amount || 0).toFixed(2)}
+      </span>
+      <button
+        onClick={() => setConfirmDeleteId(tx.id)}
+  className="text-red-600 hover:text-red-800 font-medium transition"
+      >
+        ✕
+      </button>
+    </div>
+  </li>
+))}
+
+
               </ul>
             )}
           </div>
         )}
 
       </div>
+
+      {confirmDeleteId !== null && (
+  <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div className="bg-background dark:bg-background-dark rounded-2xl p-6 w-80 shadow-xl border border-gray-200 dark:border-gray-700 text-center transition">
+      <h3 className="text-lg font-semibold mb-4 text-foreground">
+        Delete this transaction?
+      </h3>
+      <div className="flex justify-center gap-4">
+        <button
+          className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-foreground hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 transition"
+          onClick={async () => {
+            try {
+              await invoke("delete_transaction", { id: confirmDeleteId });
+              await fetchTransactions();
+            } catch (err) {
+              console.error("Delete failed:", err);
+            } finally {
+              setConfirmDeleteId(null);
+            }
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }
